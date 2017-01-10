@@ -31,7 +31,7 @@ namespace {
 
     bool runOnFunction(Function &F) override {
       MapVector<unsigned, VectorType> map;
-      SetVector<BasicBlock*> visited;
+      //SetVector<BasicBlock*> visited;
       MapVector<unsigned, VectorType> siblings;
       MapVector<unsigned, VectorType> families;
 
@@ -40,7 +40,7 @@ namespace {
       for (Function::const_iterator bbi = bbs.begin(), bbe = bbs.end(); bbi != bbe; ++bbi) {
         errs() << "BB";
         const BasicBlock& bb = *bbi;
-        visited.insert
+        //visited.insert
 
         const_pred_iterator pi = pred_begin(&bb), pe = pred_end(&bb);
         int pn = 0;
@@ -70,7 +70,7 @@ namespace {
         if (bi->second.size() < 2)
           continue;
         const VectorType& v = bi->second;
-        errs() << v.size() << "\n";
+        errs() << "v.size(): " << v.size() << "\n";
         for (int i = 0, n = v.size(); i < n; ++i) {
           const Instruction* inst = v[i];
           const BasicBlock* parent = inst->getParent();
