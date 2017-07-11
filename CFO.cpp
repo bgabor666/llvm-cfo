@@ -1,4 +1,5 @@
 #include "llvm/ADT/MapVector.h"
+#include "llvm/IR/Module.h"
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/IR/CFG.h"
@@ -189,6 +190,43 @@ namespace {
 }
 
 char CFO3::ID = 0;
-static RegisterPass<CFO3>
-Z("cfo3", "CFO World Pass (with getAnalysisUsage implemented)");
+//static RegisterPass<CFO3>
+//Z("cfo3", "CFO World Pass (with getAnalysisUsage implemented)");
+
+
+// Rewrite CFO pass to inherit from ModulePass
+namespace {
+  struct CFO4 : public ModulePass {
+    static char ID; // Pass identification, replacement for typeid
+
+    CFO4() : ModulePass(ID) {}
+
+    bool runOnModule(Module &M) override {
+
+      for (auto &F : M) {
+        StringRef Name = F.getName();
+        errs() << "Function<" << Name << ">" << ":\n";
+        runOnFunction(F);
+      }
+
+      return true;
+    }
+
+    bool runOnFunction(Function &F) {
+      for (auto &BB : F) {
+        errs() << "  BasicBlock<" << BB.getName() << ">" << ":\n";
+
+        for (auto &I : BB) {
+          errs() << "  ";
+          I.dump();
+        }
+        errs() << "\n";
+      }
+    }
+  };
+}
+
+char CFO4::ID = 0;
+static RegisterPass<CFO4>
+Z("cfo4", "CFO World Pass (ModulePass)");
 
