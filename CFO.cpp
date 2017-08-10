@@ -3,7 +3,10 @@
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/IR/CFG.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -196,8 +199,24 @@ char CFO3::ID = 0;
 
 // Rewrite CFO pass to inherit from ModulePass
 namespace {
+  static Function *getMyConstantFunction(Module &M, LLVMContext &Context) {
+    Function *MyConstantF = cast<Function>(M.getOrInsertFunction("myConstant", Type::getInt32Ty(Context)));
+
+    BasicBlock *BB = BasicBlock::Create(Context, "EntryBlock", MyConstantF);
+
+    Value *NumberOfTheBeast = ConstantInt::get(Type::getInt32Ty(Context), 666);
+
+    //BasicBlock *RetBB = BasicBlock::Create(Context, "return", MyConstantF);
+
+    //ReturnInst::Create(Context, NumberOfTheBeast, RetBB);
+    ReturnInst::Create(Context, NumberOfTheBeast, BB);
+
+    return MyConstantF;
+  }
+
   struct CFO4 : public ModulePass {
     static char ID; // Pass identification, replacement for typeid
+    SmallVector<Instruction*, 128> DeleteList;
 
     CFO4() : ModulePass(ID) {}
 
@@ -209,19 +228,42 @@ namespace {
         runOnFunction(F);
       }
 
+      for (auto I : DeleteList) {
+        //I->dropAllReferences();
+        getMyConstantFunction(M, M.getContext());
+        I->eraseFromParent();
+      }
+
+
       return true;
     }
 
     bool runOnFunction(Function &F) {
+      //SmallVector<Instruction*, 128> DeleteList;
       for (auto &BB : F) {
         errs() << "  BasicBlock<" << BB.getName() << ">" << ":\n";
 
         for (auto &I : BB) {
+          if (I.getOpcode() == Instruction::Sub) {
+            errs() << "Found sub instruction...";
+            DeleteList.push_back(&I);
+            errs() << "getNumOperands(): " <<  I.getNumOperands() << "\n";
+            //I.dropAllReferences();
+            //I.eraseFromParent();
+          }
+
           errs() << "  ";
           I.dump();
         }
         errs() << "\n";
       }
+
+      //for (auto &I : DeleteList) {
+        //I->dropAllReferences();
+       // I->eraseFromParent();
+     // }
+
+      return !DeleteList.empty();
     }
   };
 }
