@@ -9,6 +9,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
 
 using namespace llvm;
 
@@ -229,17 +230,17 @@ namespace {
       }
 
       for (auto I : DeleteList) {
-        //I->dropAllReferences();
-        getMyConstantFunction(M, M.getContext());
-        I->eraseFromParent();
+        Function* MyConstantFunction = getMyConstantFunction(M, M.getContext());
+        Instruction *MyConstantCallInst = CallInst::Create(MyConstantFunction);
+        ReplaceInstWithInst(I, MyConstantCallInst);
       }
 
+      M.dump();
 
       return true;
     }
 
     bool runOnFunction(Function &F) {
-      //SmallVector<Instruction*, 128> DeleteList;
       for (auto &BB : F) {
         errs() << "  BasicBlock<" << BB.getName() << ">" << ":\n";
 
@@ -248,8 +249,6 @@ namespace {
             errs() << "Found sub instruction...";
             DeleteList.push_back(&I);
             errs() << "getNumOperands(): " <<  I.getNumOperands() << "\n";
-            //I.dropAllReferences();
-            //I.eraseFromParent();
           }
 
           errs() << "  ";
@@ -257,11 +256,6 @@ namespace {
         }
         errs() << "\n";
       }
-
-      //for (auto &I : DeleteList) {
-        //I->dropAllReferences();
-       // I->eraseFromParent();
-     // }
 
       return !DeleteList.empty();
     }
