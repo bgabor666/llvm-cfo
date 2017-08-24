@@ -229,10 +229,28 @@ namespace {
         runOnFunction(F);
       }
 
+#if 0
       for (auto I : DeleteList) {
         Function* MyConstantFunction = getMyConstantFunction(M, M.getContext());
         Instruction *MyConstantCallInst = CallInst::Create(MyConstantFunction);
         ReplaceInstWithInst(I, MyConstantCallInst);
+      }
+#endif
+
+      for (auto I : DeleteList) {
+        SmallVector<Value*, 4> OperandVector;
+        errs() << "Operands:" << "\n";
+        for (unsigned OperatorIndex = 0, NumOperands = I->getNumOperands(); OperatorIndex != NumOperands; ++OperatorIndex) {
+          I->getOperand(OperatorIndex)->dump();
+          OperandVector.push_back(I->getOperand(OperatorIndex));
+        }
+
+        errs() << "OperandVector size:" << OperandVector.size() << "\n";
+
+        Function* ParametricSubFunction = M.getFunction("parametricSub");
+        //Instruction *ParametricSubCallInst = CallInst::Create(ParametricSubFunction);
+        Instruction *ParametricSubCallInst = CallInst::Create(ParametricSubFunction, OperandVector);
+        ReplaceInstWithInst(I, ParametricSubCallInst);
       }
 
       M.dump();
