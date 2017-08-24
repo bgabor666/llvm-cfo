@@ -259,11 +259,13 @@ namespace {
     }
 
     bool runOnFunction(Function &F) {
+      errs() << "Function name: " << F.getName() << "\n";
+
       for (auto &BB : F) {
         errs() << "  BasicBlock<" << BB.getName() << ">" << ":\n";
 
         for (auto &I : BB) {
-          if (I.getOpcode() == Instruction::Sub) {
+          if (F.getName() == "parametricSub" && I.getOpcode() == Instruction::Sub) {
             errs() << "Found sub instruction...";
             DeleteList.push_back(&I);
             errs() << "getNumOperands(): " <<  I.getNumOperands() << "\n";
