@@ -56,10 +56,15 @@ namespace {
 #endif
 
       for (auto I : DeleteList) {
+        errs() << "I->getNumUses: " << I->getNumUses() << "\n";
+
         SmallVector<Value*, 4> OperandVector;
+
         errs() << "Operands:" << "\n";
+
         for (unsigned OperatorIndex = 0, NumOperands = I->getNumOperands(); OperatorIndex != NumOperands; ++OperatorIndex) {
           I->getOperand(OperatorIndex)->dump();
+          I->getOperand(OperatorIndex)->getType()->dump();
           OperandVector.push_back(I->getOperand(OperatorIndex));
         }
 
